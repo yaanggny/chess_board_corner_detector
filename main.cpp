@@ -6,14 +6,16 @@
 
 
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
-#include <algorithm>
-#include "CornerDetAC.h"
+#include "corner_detector.h"
 #include "ChessboradStruct.h"
 
-#include <stdio.h>
+#include <algorithm>
 #include <iostream>
+#include <stdio.h>
+#include <string>
 #include <time.h>
 
 using namespace cv;
@@ -23,20 +25,17 @@ vector<Point2i> points;
 
 int main(int argc, char* argv[])
 {
-    Mat src1; 
-    cv::Mat src;
-    printf("read file...\n");
-    string sr;
-    if(argc < 2)
-     sr = string("02.png");
-    else
+    cv::Mat src, src1;
+    string sr = "02.png";
+    if(argc >= 2)
      sr = string(argv[1]);
-    string simage, stxt, ssave;
-    simage = sr ;//+ ".bmp";
-    stxt = sr + ".txt";
-    ssave = sr + ".png";
-    ssave = "./t/"+ssave;
+
+	int c_w = atoi(argv[2]);
+	int c_h = atoi(argv[3]);
+
+    string simage = sr;
 	src1 = imread(simage.c_str(), -1);//载入测试图像
+
 	if (src1.channels() == 1)
 	{
 		src = src1.clone();
@@ -45,13 +44,13 @@ int main(int argc, char* argv[])
 	{
 		if (src1.channels() == 3)
 		{
-			cv::cvtColor(src1, src, CV_BGR2GRAY);
+			cv::cvtColor(src1, src, cv::COLOR_BGR2GRAY);
 		}
 		else
 		{
 			if (src1.channels() == 4)
 			{
-				cv::cvtColor(src1, src, CV_BGRA2GRAY);
+				cv::cvtColor(src1, src, cv::COLOR_BGRA2GRAY);
 			}
 		}
 	}
@@ -65,23 +64,42 @@ int main(int argc, char* argv[])
 	{
 		printf("read image file ok\n");
 	}
-
-	vector<Point> corners_p;//存储找到的角点
 	
 	double t = (double)getTickCount();
 	std::vector<cv::Mat> chessboards;
-	CornerDetAC corner_detector(src);
+	CornerDetAC corner_detector;
 	ChessboradStruct chessboardstruct;
 
 	Corners corners_s;
-	corner_detector.detectCorners(src, corners_p, corners_s, 0.01);
+	corner_detector.detectCorners(src, corners_s, 0.01);
+
+	cv::Mat imgc = src.clone();
+	cv::Mat imgc2 = src.clone();
+	if(src.channels() < 3)
+	{
+		cv::cvtColor(src, imgc, cv::COLOR_GRAY2BGR);
+		imgc2 = imgc.clone();
+	}
+	int cnt = 0;
+	int cb_size = c_h*c_w;
+	for(const auto& p: corners_s.p)
+	{
+		cv::Point c(p.x+0.5, p.y+0.5);
+		cv::circle(imgc, c, 3, CV_RGB(255, 0, 0));
+		cv::putText(imgc2, std::to_string(cnt), c, cv::FONT_HERSHEY_DUPLEX, 0.3, CV_RGB(0, 0, 255));
+		cnt++;
+		if(cnt > cb_size) break;
+	}
+
+	cv::imwrite("res_pt.png", imgc);
+	cv::imwrite("res_pt_order.png", imgc2);
 
 	t = ((double)getTickCount() - t) / getTickFrequency();
 	std::cout << "time cost :" << t << std::endl;
      
-	ImageChessesStruct ics;
-        chessboardstruct.chessboardsFromCorners(corners_s, chessboards, 0.6);
-        chessboardstruct.drawchessboard(src1, corners_s, chessboards, "cb", 0);
+	// ImageChessesStruct ics;
+	// chessboardstruct.chessboardsFromCorners(corners_s, chessboards, 0.6);
+	// chessboardstruct.drawchessboard(src1, corners_s, chessboards, "cb", 0);
 
      return 0;
 }

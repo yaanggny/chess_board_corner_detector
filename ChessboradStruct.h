@@ -6,9 +6,9 @@
 
 #pragma once
                
-#include "opencv2/opencv.hpp"
+#include "corner_def.h"
+#include <opencv2/core.hpp>
 #include <vector>
-#include "HeaderCB.h"
 
 class ChessboradStruct
 {

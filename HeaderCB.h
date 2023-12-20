@@ -6,20 +6,11 @@
 /*  Calibration using a single Shot                                       */
 #pragma once
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/core.hpp>
 #include <vector>
 #include "stdio.h"
 
 #define logd std::printf;
-
-struct Corners
-{
-	std::vector<cv::Point2f> p;
-	std::vector<cv::Vec2f> v1;
-	std::vector<cv::Vec2f> v2;
-	std::vector<float> score;
-} ;
-
 
 struct ConerInfo
 {
@@ -32,7 +23,7 @@ struct ConerInfo
 	int neardiskidx;
 	float nearestdiskdistance;
 
-        ConerInfo operator=(const ConerInfo& value)
+	ConerInfo operator=(const ConerInfo& value)
 	{
 		p = value.p;
 		chessidx = value.chessidx;
@@ -57,15 +48,15 @@ struct ConerInfo
 };
 struct ImageChessesStruct
 {
-        std::vector<std::vector<cv::Point2f> > flagpostion;
-        std::vector<std::vector<std::vector<int> > > idxconersflags;
+	std::vector<std::vector<cv::Point2f> > flagpostion;
+	std::vector<std::vector<std::vector<int> > > idxconersflags;
 	std::vector<int>choosecorneri;
 
 	cv::Rect rt;
 	int cbnum;
-        std::vector<std::vector<ConerInfo> > chesscorners;
+	std::vector<std::vector<ConerInfo> > chesscorners;
 	bool flagbeginfromzero;
-        ImageChessesStruct& operator=( ImageChessesStruct& value)
+	ImageChessesStruct& operator=( ImageChessesStruct& value)
 	{
 		cbnum = value.cbnum;
 		chesscorners = value.chesscorners;

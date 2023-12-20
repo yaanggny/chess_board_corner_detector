@@ -6,13 +6,12 @@
 /*  Calibration using a single Shot                                       */
 
 
-#pragma once
+#ifndef __CORNER_DETECTOR_H
+#define __CORNER_DETECTOR_H
 
-#include "opencv2/opencv.hpp"
-#include <iostream>
+#include "corner_def.h"
+#include <opencv2/core.hpp>
 #include <vector>
-
-#include "HeaderCB.h"
 
 #if 1
 #define  mtype CV_32F
@@ -27,16 +26,15 @@ class CornerDetAC
 public:
 	CornerDetAC();
 	~CornerDetAC();
-	CornerDetAC(cv::Mat img);
-	void detectCorners(cv::Mat &Src, std::vector<cv::Point> &resultCornors, Corners& mcorners, dtype scoreThreshold, bool isrefine = true);
+	void detectCorners(cv::Mat &img, Corners& mcorners, dtype scoreThreshold, bool isrefine = true);
 	void chessboardsFromCorners(std::vector<std::vector<cv::Point2f>>chessboards);
 private:
 	
 	dtype normpdf(dtype dist, dtype mu, dtype sigma);
 
-	void getMin(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void getMin(const cv::Mat& src1, const cv::Mat& src2, cv::Mat &dst);
 	
-	void getMax(cv::Mat src1, cv::Mat src2, cv::Mat &dst);
+	void getMax(const cv::Mat& src1, const cv::Mat& src2, cv::Mat &dst);
 	
 	void getImageAngleAndWeight(cv::Mat img, cv::Mat &imgDu, cv::Mat &imgDv, cv::Mat &imgAngle, cv::Mat &imgWeight);
 	
@@ -63,3 +61,5 @@ private:
 	
 };
 
+
+#endif /* __CORNER_DETECTOR_H */

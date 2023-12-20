@@ -1,6 +1,6 @@
 #pragma once
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/core.hpp>
 enum ConvolutionType {
 	/* Return the full convolution, including border */
 	CONVOLUTION_FULL,

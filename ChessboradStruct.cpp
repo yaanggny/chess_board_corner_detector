@@ -5,9 +5,16 @@
 /*  Calibration using a single Shot                                       */
 
 #include "ChessboradStruct.h"
+#include "HeaderCB.h"
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <fstream>  
+#include <iostream>  
 #include <limits>
-#include<numeric>
+#include <numeric>
+
+using namespace std;
 
 #define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
 
@@ -754,7 +761,7 @@ void ChessboradStruct::drawchessboard(cv::Mat img, Corners& corners, std::vector
 	cv::Mat disp = img.clone();
 
 	if (disp.channels() < 3)
-		cv::cvtColor(disp, disp, CV_GRAY2BGR);
+		cv::cvtColor(disp, disp, cv::COLOR_GRAY2BGR);
 	float scale = 0.3;
 	int n = 8;
 	if (img.rows < 2000 || img.cols < 2000)

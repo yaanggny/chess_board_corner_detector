@@ -6,9 +6,12 @@
 /*  Calibration using a single Shot                                       */
 
 
-#include "CornerDetAC.h"
+#include "corner_detector.h"
 #include "corealgmatlab.h"
 
+#include <opencv2/imgproc.hpp>
+
+#include <iostream>
 
 using namespace cv;
 using namespace std;
@@ -16,14 +19,6 @@ using namespace std;
 //#define show_ 
 
 CornerDetAC::CornerDetAC()
-{
-}
-
-
-CornerDetAC::~CornerDetAC()
-{
-}
-CornerDetAC::CornerDetAC(cv::Mat img)
 {
 	//3 scales
 	radius.push_back(4);
@@ -38,6 +33,11 @@ CornerDetAC::CornerDetAC(cv::Mat img)
 	templateProps.push_back(Point2f((dtype)CV_PI / 4, (dtype)-CV_PI / 4));
 }
 
+CornerDetAC::~CornerDetAC()
+{
+
+}
+
 //Normal probability density function (pdf).
 dtype CornerDetAC::normpdf(dtype dist, dtype mu, dtype sigma)
 {
@@ -47,10 +47,10 @@ dtype CornerDetAC::normpdf(dtype dist, dtype mu, dtype sigma)
 }
 
 
-//**************************Éú³ÉºË*****************************//
-//angle´ú±íºËÀàÐÍ£º45¶ÈºËºÍ90¶ÈºË
-//kernelSize´ú±íºË´óÐ¡£¨×îÖÕÉú³ÉµÄºËµÄ´óÐ¡ÎªkernelSize*2+1£©
-//kernelA...kernelDÊÇÉú³ÉµÄºË
+//**************************ï¿½ï¿½ï¿½Éºï¿½*****************************//
+//angleï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½45ï¿½ÈºËºï¿½90ï¿½Èºï¿½
+//kernelSizeï¿½ï¿½ï¿½ï¿½ï¿½Ë´ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÉµÄºËµÄ´ï¿½Ð¡ÎªkernelSize*2+1ï¿½ï¿½
+//kernelA...kernelDï¿½ï¿½ï¿½ï¿½ï¿½ÉµÄºï¿½
 //*************************************************************************//
 void CornerDetAC::createkernel(float angle1, float angle2, int kernelSize, Mat &kernelA, Mat &kernelB, Mat &kernelC, Mat &kernelD)
 {
@@ -64,9 +64,9 @@ void CornerDetAC::createkernel(float angle1, float angle2, int kernelSize, Mat &
 
 	for (int u = 0; u < width; ++u){
 		for (int v = 0; v < height; ++v){
-			dtype vec[] = { u - kernelSize, v - kernelSize };//Ïàµ±ÓÚ½«×ø±êÔ­µãÒÆ¶¯µ½ºËÖÐÐÄ
-			dtype dis = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);//Ïàµ±ÓÚ¼ÆËãµ½ÖÐÐÄµÄ¾àÀë
-			dtype side1 = vec[0] * (-sin(angle1)) + vec[1] * cos(angle1);//Ïàµ±ÓÚ½«×ø±êÔ­µãÒÆ¶¯ºóµÄºË½øÐÐÐý×ª£¬ÒÔ´Ë²úÉúËÄÖÖºË
+			dtype vec[] = { u - kernelSize, v - kernelSize };//ï¿½àµ±ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			dtype dis = std::sqrt(vec[0] * vec[0] + vec[1] * vec[1]);//ï¿½àµ±ï¿½Ú¼ï¿½ï¿½ãµ½ï¿½ï¿½ï¿½ÄµÄ¾ï¿½ï¿½ï¿½
+			dtype side1 = vec[0] * (-sin(angle1)) + vec[1] * cos(angle1);//ï¿½àµ±ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ÄºË½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½Ô´Ë²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öºï¿½
 			dtype side2 = vec[0] * (-sin(angle2)) + vec[1] * cos(angle2);//X=X0*cos+Y0*sin;Y=Y0*cos-X0*sin
 			if (side1 <= -0.1&&side2 <= -0.1){
 				kernelA.ptr<dtype>(v)[u] = normpdf(dis, 0, kernelSize / 2);
@@ -84,7 +84,7 @@ void CornerDetAC::createkernel(float angle1, float angle2, int kernelSize, Mat &
 	}
 	//std::cout << "kernelA:" << kernelA << endl << "kernelB:" << kernelB << endl
 	//	<< "kernelC:" << kernelC<< endl << "kernelD:" << kernelD << endl;
-	//¹éÒ»»¯
+	//ï¿½ï¿½Ò»ï¿½ï¿½
 	kernelA = kernelA / cv::sum(kernelA)[0];
 	kernelB = kernelB / cv::sum(kernelB)[0];
 	kernelC = kernelC / cv::sum(kernelC)[0];
@@ -92,9 +92,9 @@ void CornerDetAC::createkernel(float angle1, float angle2, int kernelSize, Mat &
 
 }
 
-//**************************//»ñÈ¡×îÐ¡Öµ*****************************//
+//**************************//ï¿½ï¿½È¡ï¿½ï¿½Ð¡Öµ*****************************//
 //*************************************************************************//
-void CornerDetAC::getMin(Mat src1, Mat src2, Mat &dst){
+void CornerDetAC::getMin(const cv::Mat& src1, const cv::Mat& src2, Mat &dst){
 	int rowsLeft = src1.rows;
 	int colsLeft = src1.cols;
 	int rowsRight = src2.rows;
@@ -119,9 +119,9 @@ void CornerDetAC::getMin(Mat src1, Mat src2, Mat &dst){
 		}
 	}
 }
-//**************************//»ñÈ¡×î´óÖµ*****************************//
+//**************************//ï¿½ï¿½È¡ï¿½ï¿½ï¿½Öµ*****************************//
 //*************************************************************************//
-void CornerDetAC::getMax(Mat src1, Mat src2, Mat &dst)
+void CornerDetAC::getMax(const cv::Mat& src1, const cv::Mat& src2, Mat &dst)
 {
 	int rowsLeft = src1.rows;
 	int colsLeft = src1.cols;
@@ -147,13 +147,13 @@ void CornerDetAC::getMax(Mat src1, Mat src2, Mat &dst)
 		}
 	}
 }
-//»ñÈ¡ÌÝ¶È½Ç¶ÈºÍÈ¨ÖØ
+//ï¿½ï¿½È¡ï¿½Ý¶È½Ç¶Èºï¿½È¨ï¿½ï¿½
 void CornerDetAC::getImageAngleAndWeight(Mat img, Mat &imgDu, Mat &imgDv, Mat &imgAngle, Mat &imgWeight)
 {
 	
 	Mat sobelKernel(3, 3, mtype);
 	Mat sobelKernelTrs(3, 3, mtype);
-	//sobleÂË²¨Æ÷Ëã×ÓºË
+	//sobleï¿½Ë²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Óºï¿½
 	sobelKernel.col(0).setTo(cv::Scalar(-1.0));
 	sobelKernel.col(1).setTo(cv::Scalar(0.0));
 	sobelKernel.col(2).setTo(cv::Scalar(1.0));
@@ -197,10 +197,10 @@ void CornerDetAC::getImageAngleAndWeight(Mat img, Mat &imgDu, Mat &imgDv, Mat &i
 	}
 	*/
 }
-//**************************·Ç¼«´óÖµÒÖÖÆ*****************************//
-//inputCornersÊÇÊäÈë½Çµã£¬outputCornersÊÇ·Ç¼«´óÖµÒÖÖÆºóµÄ½Çµã
-//thresholdÊÇÉè¶¨µÄãÐÖµ
-//marginÊÇ½øÐÐ·Ç¼«´óÖµÒÖÖÆÊ±¼ì²é·½¿éÓëÊäÈë¾ØÕó±ß½çµÄ¾àÀë£¬patchSizeÊÇ¸Ã·½¿éµÄ´óÐ¡
+//**************************ï¿½Ç¼ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½*****************************//
+//inputCornersï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµã£¬outputCornersï¿½Ç·Ç¼ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½Æºï¿½Ä½Çµï¿½
+//thresholdï¿½ï¿½ï¿½è¶¨ï¿½ï¿½ï¿½ï¿½Öµ
+//marginï¿½Ç½ï¿½ï¿½Ð·Ç¼ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½é·½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½Ä¾ï¿½ï¿½ë£¬patchSizeï¿½Ç¸Ã·ï¿½ï¿½ï¿½Ä´ï¿½Ð¡
 //*************************************************************************//
 void CornerDetAC::nonMaximumSuppression(Mat& inputCorners, vector<Point2f>& outputCorners, int patchSize, dtype threshold, int margin)
 {
@@ -208,13 +208,13 @@ void CornerDetAC::nonMaximumSuppression(Mat& inputCorners, vector<Point2f>& outp
 	{
 		cout << "The imput mat is empty!" << endl; return;
 	}
-	for (int i = margin + patchSize; i <= inputCorners.cols - (margin + patchSize+1); i = i + patchSize + 1)//ÒÆ¶¯¼ì²é·½¿é£¬Ã¿´ÎÒÆ¶¯Ò»¸ö·½¿éµÄ´óÐ¡
+	for (int i = margin + patchSize; i <= inputCorners.cols - (margin + patchSize+1); i = i + patchSize + 1)//ï¿½Æ¶ï¿½ï¿½ï¿½é·½ï¿½é£¬Ã¿ï¿½ï¿½ï¿½Æ¶ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä´ï¿½Ð¡
 	{
 		for (int j = margin + patchSize; j <= inputCorners.rows - (margin + patchSize+1); j = j + patchSize + 1)
 		{
 			dtype maxVal = inputCorners.ptr<dtype>(j)[i];
 			int maxX = i; int maxY = j;
-			for (int m = i; m <= i + patchSize ; m++)//ÕÒ³ö¸Ã¼ì²é·½¿éÖÐµÄ¾Ö²¿×î´óÖµ
+			for (int m = i; m <= i + patchSize ; m++)//ï¿½Ò³ï¿½ï¿½Ã¼ï¿½é·½ï¿½ï¿½ï¿½ÐµÄ¾Ö²ï¿½ï¿½ï¿½ï¿½Öµ
 			{
 				for (int n = j; n <= j + patchSize ; n++)
 				{
@@ -225,9 +225,9 @@ void CornerDetAC::nonMaximumSuppression(Mat& inputCorners, vector<Point2f>& outp
 					}
 				}
 			}
-			if (maxVal < threshold)continue;//Èô¸Ã¾Ö²¿×î´óÖµÐ¡ÓÚãÐÖµÔò²»Âú×ãÒªÇó
+			if (maxVal < threshold)continue;//ï¿½ï¿½ï¿½Ã¾Ö²ï¿½ï¿½ï¿½ï¿½ÖµÐ¡ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½
 			int flag = 0;
-			for (int m = maxX - patchSize; m <= min(maxX + patchSize, inputCorners.cols - margin-1); m++)//¶þ´Î¼ì²é
+			for (int m = maxX - patchSize; m <= min(maxX + patchSize, inputCorners.cols - margin-1); m++)//ï¿½ï¿½ï¿½Î¼ï¿½ï¿½
 			{
 				for (int n = maxY - patchSize; n <= min(maxY + patchSize, inputCorners.rows - margin-1); n++)
 				{
@@ -380,7 +380,7 @@ float CornerDetAC::norm2d(cv::Point2f o)
 {
 	return sqrt(o.x*o.x + o.y*o.y);
 }
-//ÑÇÏñËØ¾«¶ÈÕÒ½Çµã
+//ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ï¿½Ò½Çµï¿½
 void CornerDetAC::refineCorners(vector<Point2f> &cornors, Mat imgDu, Mat imgDv, Mat imgAngle, Mat imgWeight, float radius){
 	// image dimensions
 	int width = imgDu.cols;
@@ -604,7 +604,7 @@ void CornerDetAC::cornerCorrelationScore(Mat img, Mat imgWeight, vector<Point2f>
 
 	//create intensity filter kernel
 	Mat kernelA, kernelB, kernelC, kernelD;
-	createkernel(atan2(cornersEdge[0].y, cornersEdge[0].x), atan2(cornersEdge[1].y, cornersEdge[1].x), c[0], kernelA, kernelB, kernelC, kernelD);//1.1 ²úÉúËÄÖÖºË
+	createkernel(atan2(cornersEdge[0].y, cornersEdge[0].x), atan2(cornersEdge[1].y, cornersEdge[1].x), c[0], kernelA, kernelB, kernelC, kernelD);//1.1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öºï¿½
 
 	//checkerboard responses
 	float a1, a2, b1, b2;
@@ -669,7 +669,7 @@ void CornerDetAC::scoreCorners(Mat img, Mat imgAngle, Mat imgWeight, vector<Poin
 }
 
 
-void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners& mcorners,  dtype scoreThreshold, bool isrefine)
+void CornerDetAC::detectCorners(Mat &Src, Corners& mcorners,  dtype scoreThreshold, bool isrefine)
 {
 	Mat gray, imageNorm;
 	gray = Mat(Src.size(), CV_8U);
@@ -677,7 +677,7 @@ void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners&
 	// convert to double grayscale image
 	if (Src.channels() == 3)
 	{
-		cvtColor(Src, gray, COLOR_BGR2GRAY);
+		cvtColor(Src, gray, cv::COLOR_BGR2GRAY);
 	}
 	else
 	{
@@ -712,7 +712,7 @@ void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners&
 	for (int i = 0; i < 6; i++)
 	{
 		Mat kernelA1, kernelB1, kernelC1, kernelD1;
-		createkernel(templateProps[i].x, templateProps[i].y, radius[i / 2], kernelA1, kernelB1, kernelC1, kernelD1);//1.1 ²úÉúËÄÖÖºË
+		createkernel(templateProps[i].x, templateProps[i].y, radius[i / 2], kernelA1, kernelB1, kernelC1, kernelD1);//1.1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öºï¿½
 
 		//std::cout << "kernelA:" << kernelA1 << endl << "kernelB:" << kernelB1 << endl
 		//	<< "kernelC:" << kernelC1 << endl << "kernelD:" << kernelD1 << endl;
@@ -729,7 +729,7 @@ void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners&
 		filter2D(imageNorm, imgCornerD1, mtype, kernelD1);//b2
 #endif	
 		//compute mean
-		imgCornerMean = (imgCornerA1 + imgCornerB1 + imgCornerC1 + imgCornerD1) / 4.0;//1.3 °´ÕÕ¹«Ê½½øÐÐ¼ÆËã
+		imgCornerMean = (imgCornerA1 + imgCornerB1 + imgCornerC1 + imgCornerD1) / 4.0;//1.3 ï¿½ï¿½ï¿½Õ¹ï¿½Ê½ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½
 		// case 1: a = white, b = black
 		getMin(imgCornerA1 - imgCornerMean, imgCornerB1 - imgCornerMean, imgCornerA);
 		getMin(imgCornerMean - imgCornerC1, imgCornerMean - imgCornerD1, imgCornerB);
@@ -744,7 +744,7 @@ void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners&
 		getMax(imgCorners, imgCorner2, imgCorners);
 	}
 #ifdef show_
-	namedWindow("ROI");//´´½¨´°¿Ú£¬ÏÔÊ¾Ô­Ê¼Í¼Ïñ
+	namedWindow("ROI");//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½Ê¾Ô­Ê¼Í¼ï¿½ï¿½
 	imshow("ROI", imgCorners); waitKey(10);
 #endif
 
@@ -752,7 +752,7 @@ void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners&
 	std::cout << "filtering time cost :" << t << std::endl;
 
 	// extract corner candidates via non maximum suppression
-	nonMaximumSuppression(imgCorners, cornerPoints, 3, 0.025, 5);//1.5 ·Ç¼«´óÖµÒÖÖÆËã·¨½øÐÐ¹ýÂË£¬»ñÈ¡ÆåÅÌ¸ñ½Çµã³õ²½½á¹û
+	nonMaximumSuppression(imgCorners, cornerPoints, 3, 0.025, 5);//1.5 ï¿½Ç¼ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ã·¨ï¿½ï¿½ï¿½Ð¹ï¿½ï¿½Ë£ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ì¸ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	//post processing
 
@@ -786,7 +786,7 @@ void CornerDetAC::detectCorners(Mat &Src, vector<Point> &resultCornors, Corners&
 	scoreCorners(imageNorm, img_angle, img_weight, cornerPoints, radius, score);
 
 #ifdef show_
-	namedWindow("src");//´´½¨´°¿Ú£¬ÏÔÊ¾Ô­Ê¼Í¼Ïñ
+	namedWindow("src");//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½Ê¾Ô­Ê¼Í¼ï¿½ï¿½
 	imshow("src", Src); 
 	waitKey(0);
 #endif
